@@ -10,11 +10,11 @@ const int mxN = (int)4e4+10;
 const int LINF = (int)1e18;
 int n, q, a[mxN];
 struct Data{
-	int opt, optl, optr, optlr, optnone, sz;
+	int opt, optl, optr, optlr, optnone;
 } segTree[mxN*2];
 
 Data comb(Data &a, Data &b){
-	Data c; c.sz = a.sz+b.sz;
+	Data c;
 	c.optl = max(a.optlr+b.optnone,a.optl+max(b.optl,b.optnone));
 	c.optr = max(a.optr+b.optr,a.optnone+max(b.optlr,b.optr));
 	c.optlr = a.optl + max(b.optr,b.optlr);
@@ -25,7 +25,7 @@ Data comb(Data &a, Data &b){
 }
 
 void upd(int x, int v, int p=0, int l=1, int r=n){
-	if(l==r){ segTree[p] = {v,0,0,v,0,1}; return; }
+	if(l==r){ segTree[p] = {v,0,0,v,0}; return; }
 	int mid = (l+r)>>1; int rp = p+(mid-l+1)*2; 
 	if(x<=mid) upd(x,v,p+1,l,mid);
 	else upd(x,v,rp,mid+1,r);
