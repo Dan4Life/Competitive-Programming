@@ -30,6 +30,7 @@ ID     Student Name        Math    English   Science     Percentage
 1
 2
 ...
+No classes or structs involved
 **/
 
 #include <iostream>
