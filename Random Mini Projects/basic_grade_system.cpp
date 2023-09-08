@@ -30,7 +30,7 @@ ID     Student Name        Math    English   Science     Percentage
 1
 2
 ...
-No classes or structs involved
+No classes/structs involved.
 **/
 
 #include <iostream>
@@ -94,11 +94,15 @@ void add_student(){
 }
 
 bool modify_student(){
+    if(numStudents==0){
+        cout << "\nThere are no students in this system\n";
+        return false;
+    }
+
     cout << "\nThis is to modify a student\n";
-
+    bool is_modified = false;
     int id = getId();
-    if(id==-1) return false;
-
+    if(id==-1) return is_modified;
 
     char option;
 
@@ -106,35 +110,35 @@ bool modify_student(){
     cin >> option;
     if(option == 'y'){
         cout << "Enter the new full name of the student: ";
-        cin.ignore(); getline(cin, full_name[id]);
+        cin.ignore(); getline(cin, full_name[id]); is_modified = true;
     }
-    else if(option!='n') return false;
+    else if(option!='n') return is_modified;
 
     cout << "Do you want to change the student's math score? Respond with y/n/e (yes/no/exit): ";
     cin >> option;
     if(option == 'y'){
         cout << "Enter the new math score of the student: ";
-        validate(math_score[id]);
+        validate(math_score[id]); is_modified = true;
     }
-    else if(option!='n') return true;
+    else if(option!='n') return is_modified;
 
     cout << "Do you want to change the student's english score? Respond with y/n/e (yes/no/exit): ";
     cin >> option;
     if(option == 'y'){
         cout << "Enter the new english score of the student: ";
-        validate(english_score[id]);
+        validate(english_score[id]); is_modified = true;
     }
-    else if(option!='n') return true;
+    else if(option!='n') return is_modified;
 
     cout << "Do you want to change the student's science score? Respond with y/n/e (yes/no/exit): ";
     cin >> option;
     if(option == 'y'){
         cout << "Enter the new science score of the student: ";
-        validate(science_score[id]);
+        validate(science_score[id]); is_modified = true;
     }
-    else if(option!='n') return true;
+    else if(option!='n') return is_modified;
 
-    return true;
+    return is_modified;
 }
 
 float getTotScore(int id){
