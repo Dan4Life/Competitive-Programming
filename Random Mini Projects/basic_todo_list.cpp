@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 const string status[] = {"pending", "complete"}; // change the names to anything
@@ -7,6 +8,52 @@ const int mx_task_length = 150;
 string tasks[max_task];
 bool done[max_task];
 int taskNum = 0;
+string database_file = "database.txt";
+
+void addTaskToFile(int id){
+    ofstream file_out(database_file, ios::app);
+    file_out << tasks[id] << "\n" << done[id] << "\n";
+    file_out.close();
+}
+
+void loadFile(){
+    ofstream file_out(database_file, ios::app);
+    file_out.close();
+
+    ifstream file_in(database_file);
+    taskNum = 0;
+    while(true){
+        getline(file_in, tasks[taskNum]);
+        if(file_in.eof()) break;
+        file_in >> done[taskNum];
+        file_in.ignore(); taskNum++;
+    }
+    file_in.close();
+}
+
+void updateFile(int id=-1){ // the id can be removed from the file
+    ofstream file_out(database_file);
+    for(int i = 0; i < taskNum; i++){
+        if(i==id) continue; // delete current id from file
+        file_out << tasks[i] << "\n" << done[i] << "\n";
+    }
+    file_out.close(); loadFile();
+}
+
+template<class T> void get_input(T &var){
+    while(1){
+        cin >> var;
+        if(cin.fail()){
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else{
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if(cin.gcount() <= 1) break;
+        }
+        cout << "Invalid input, try again: ";
+    }
+}
 
 int menuScreen(){
     cout << "This is a Basic To-do List C++ Program\n";
@@ -16,17 +63,16 @@ int menuScreen(){
     cout << "(4) Show all tasks and their status\n";
     cout << "(5) Show all " << status[1] << " tasks\n";
     cout << "(6) Show all " << status[0] << " tasks\n";
-    cout << "(7) Exit the program\n";
-    int choice;
-    cout << "Enter your choice: ";
-    cin >> choice; return choice;
+    cout << "(7) Delete a task\n";
+    cout << "(8) Delete all tasks\n";
+    cout << "(9) Exit the program\n";
+    int choice; cout << "Enter your choice: ";
+    get_input(choice); return choice;
 }
 
 void addTask(bool skip){
     cout << "Enter the task description: ";
-    string description;
-    if(skip) cin.ignore(); // this is annoying
-    getline(cin, description);
+    string description; getline(cin, description);
     if(description.size() > mx_task_length){ // too large
         cout << "\nTask Description length should be at most "
         << mx_task_length << " characters\n";
@@ -34,7 +80,8 @@ void addTask(bool skip){
     }
     tasks[taskNum] = description; done[taskNum] = 0;
     cout << "Successfully added \"" << tasks[taskNum] << "\"\n";
-    cout << "Task ID: #" << taskNum << "\n\n"; taskNum++;
+    cout << "Task ID: #" << taskNum << "\n\n";
+    addTaskToFile(taskNum); taskNum++;
 }
 
 int getID(){
@@ -43,7 +90,7 @@ int getID(){
         return -1;
     }
     cout << "Enter the ID of the task: ";
-    int id; cin >> id;
+    int id; get_input(id);
     if(id<0 or id>=taskNum){
         cout << "\nInvalid ID\n";
         return -1;
@@ -59,7 +106,7 @@ void flipStatus(bool newStatus){
     }
     done[id] = !done[id]; // flipping
     cout << "Successfully changed status of task \"" << tasks[id] << "\" to '";
-    cout << status[newStatus] << "'\n";
+    cout << status[newStatus] << "'\n"; updateFile();
 }
 
 void printChar(int num, char c, bool newLine){
@@ -127,31 +174,65 @@ void displayTasks(int type){
     printChar(num_dash,'-',1);
 }
 
+void deleteTask(){
+    int id = getID(); if(id==-1) return;
+    cout << "Do you really want to delete \"" << tasks[id] << "\"?\n";
+    cout << "Respond with y if so: "; char response; get_input(response);
+    if(response!='y' and response!='Y') return;
+    cout << "Deleting task...\n";
+    updateFile(id);
+    cout << "Successfully deleted the task\n";
+}
+
+void deleteAllTasks(){
+    cout << "Do you really want to delete all tasks???\n";
+    cout << "Respond with y if so: "; char response; get_input(response);
+    if(response!='y' and response!='Y') return;
+
+    string confirm = "delete|all", input;
+    cout << "To confirm, please type the following: " << confirm << "\n";
+    get_input(input); if(input!=confirm) return;
+
+    cout << "Deleting all tasks...\n";
+    ofstream file_out(database_file);
+    file_out.close(); loadFile();
+    cout << "Successfully deleted all tasks\n";
+}
+
 int main()
 {
+    // store our data to a file
+    // load a data from a file, to the variables of our program
+    // append a task info to the end of a file
+    loadFile();
     while(true){
         cout << "\n";
         int choice = menuScreen();
         cout << "\n";
+        if(choice!=1 and choice!=9 and taskNum==0){
+            cout << "There are no tasks yet\n"; continue;
+        }
         if(choice==1){
             cout << "Enter the number of tasks to add: ";
-            int num; cin >> num;
+            int num; get_input(num);
             for(int i = 0; i < num; i++) addTask(i==0);
         }
         else if(choice==2){
             cout << "Enter the number of tasks to mark: ";
-            int num; cin >> num;
+            int num; get_input(num);
             while(num>0) flipStatus(1), num--;
         }
         else if(choice==3){
             cout << "Enter the number of tasks to mark: ";
-            int num; cin >> num;
+            int num; get_input(num);
             while(num>0) flipStatus(0), num--;
         }
         else if(choice==4) displayTasks(2);
         else if(choice==5) displayTasks(1);
         else if(choice==6) displayTasks(0);
-        else if(choice==7){
+        else if(choice==7) deleteTask();
+        else if(choice==8) deleteAllTasks();
+        else if(choice==9){
             cout << "Exiting the program...\n";
             return 0;
         }
