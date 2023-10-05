@@ -5,6 +5,7 @@ using namespace std;
 
 const int max_size = 100000;
 const int max_name_size = 150;
+const double EPS = 1e-2;
 string full_name[max_size];
 float math_score[max_size];
 float english_score[max_size];
@@ -18,18 +19,6 @@ void add_to_file(int id){ // Add a student to file
     file_out << math_score[id] << "\n";
     file_out << english_score[id] << "\n";
     file_out << science_score[id] << "\n";
-    file_out.close();
-}
-
-void update_file(int id=-1){ // possible to delete a certain ID
-    ofstream file_out(database_file);
-    for(int i = 0; i < numStudents; i++){
-        if(i==id) continue;
-        file_out << full_name[i] << "\n";
-        file_out << math_score[i] << "\n";
-        file_out << english_score[i] << "\n";
-        file_out << science_score[i] << "\n";
-    }
     file_out.close();
 }
 
@@ -49,6 +38,18 @@ void load_file(){ // from file to arrays
         numStudents++;
     }
     file_in.close();
+}
+
+void update_file(int id=-1){ // possible to delete a certain ID
+    ofstream file_out(database_file);
+    for(int i = 0; i < numStudents; i++){
+        if(i==id) continue;
+        file_out << full_name[i] << "\n";
+        file_out << math_score[i] << "\n";
+        file_out << english_score[i] << "\n";
+        file_out << science_score[i] << "\n";
+    }
+    file_out.close(); load_file();
 }
 
 template<class T> void get_input(T &var){
@@ -81,13 +82,17 @@ int getId(){
 void print_menu(){
     cout << "\n";
     cout << "Welcome to our Grade System\n";
-    cout << "0. Exit\n";
-    cout << "1. Add a student to the System\n";
-    cout << "2. Modify a student's info\n";
-    cout << "3. Show a student's report card\n";
-    cout << "4. Show all students' report card\n";
-    cout << "5. Delete a student's info in the system\n";
-    cout << "6. Delete all students' info in the system\n";
+    cout << "(0) Exit\n";
+    cout << "(1) Add a student to the System\n";
+    cout << "(2) Modify a student's info\n";
+    cout << "(3) Show a student's report card\n";
+    cout << "(4) Show all students' report cards\n";
+    cout << "(5) Delete a student's info in the system\n";
+    cout << "(6) Delete all students' info in the system\n";
+    cout << "(7) Find the highest scoring student(s)\n";
+    cout << "(8) Find the lowest scoring student(s)\n";
+    cout << "(9) Calculate average grade of all students for each subject\n";
+    //cout << "(10) Show all students' report cards in decreasing order of grades\n";
     cout << "\n";
 }
 
@@ -265,7 +270,7 @@ void delete_student(){
     cout << "Respond with y/n (yes/no): ";
     char option; get_input(option);
     if(option!='y') return;
-    update_file(id), load_file(); // delete from file, then load new file to arrays
+    update_file(id);
     cout << "Successfully deleted student\n";
 }
 
@@ -281,10 +286,64 @@ void delete_all_students(){
     if(option!='y') return;
     string confirm = "delete|all", input;
     cout << "To confirm, please type the following: " << confirm << "\n";
-    cin >> input; if(input!=confirm) return;
+    get_input(input); if(input!=confirm) return;
     ofstream file_out(database_file);
     file_out.close(); load_file(); // clear file, then load new(empty) file to arrays
     cout << "Successfully deleted all students\n";
+}
+
+void find_highest_students(){
+    if(numStudents==0){
+        cout << "\nThere are no students in this system\n";
+        return;
+    }
+
+    float highest_score = 0;
+    for(int i = 0; i < numStudents; i++)
+        highest_score = max(highest_score, getTotScore(i)/3);
+
+    cout << "\nThe highest score among all students is " << highest_score << "%\n";
+    cout << "The following students obtained this score:\n\n";
+    for(int i = 0; i < numStudents; i++)
+        if(abs(getTotScore(i)/3 - highest_score) < EPS)
+            cout << "#" << i << " " << full_name[i] << "\n";
+}
+
+void find_lowest_students(){
+    if(numStudents==0){
+        cout << "\nThere are no students in this system\n";
+        return;
+    }
+
+    float lowest_score = getTotScore(0);
+    for(int i = 0; i < numStudents; i++)
+        lowest_score = min(lowest_score, getTotScore(i)/3);
+
+    cout << "\nThe lowest score among all students is " << lowest_score << "%\n";
+    cout << "The following students obtained this score:\n\n";
+    for(int i = 0; i < numStudents; i++)
+        if(abs(getTotScore(i)/3 - lowest_score) < EPS)
+           cout << "#" << i << " " << full_name[i] << "\n";
+}
+
+void get_average_per_subject(){
+    if(numStudents==0){
+        cout << "\nThere are no students in this system\n";
+        return;
+    }
+    float math=0, eng=0, sci=0, avg=0;
+    for(int i = 0; i < numStudents; i++){
+        math+=math_score[i];
+        eng+=english_score[i];
+        sci+=science_score[i];
+        avg+=getTotScore(i)/3;
+    }
+    math/=numStudents, eng/=numStudents, sci/=numStudents, avg/=numStudents;
+    cout << "\nThis is to show all averages\n\n";
+    cout << "The average math score: " << math << "\n";
+    cout << "The average english score: " << eng << "\n";
+    cout << "The average science score: " << sci << "\n";
+    cout << "The average percentage: " << avg << "("<< grade_letter(avg) <<")\n\n";
 }
 
 int main()
@@ -312,6 +371,9 @@ int main()
         else if(option==4) show_all_report_cards();
         else if(option==5) delete_student();
         else if(option==6) delete_all_students();
+        else if(option==7) find_highest_students();
+        else if(option==8) find_lowest_students();
+        else if(option==9) get_average_per_subject();
         else cout << "Your choice is not valid. Try again!\n";
     }
 }
