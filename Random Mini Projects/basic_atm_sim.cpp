@@ -11,12 +11,50 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 using namespace std;
 
 // can be extended to multiple users
 double balance = 0;
 string name, dob, email, password;
 bool isCreated = false, isLoggedIn = false;
+string database_file = "database.txt";
+
+void loadFile(){
+    ofstream file_out(database_file, ios::app);
+    file_out.close();
+
+    ifstream file_in(database_file);
+    getline(file_in, name);
+    if(file_in.eof()) return;
+    getline(file_in, dob);
+    file_in >> email >> password >> balance;
+    isCreated = true;
+    file_in.close();
+}
+
+void updateFile(){
+    ofstream file_out(database_file);
+    file_out << name << "\n" << dob << "\n";
+    file_out << email << "\n" << password;
+    file_out << "\n" << balance << "\n";
+    file_out.close(); loadFile();
+}
+
+template<class T> void get_input(T &var){
+    while(1){
+        cin >> var;
+        if(cin.fail()){
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else{
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if(cin.gcount() <= 1) break;
+        }
+        cout << "Invalid input, try again: ";
+    }
+}
 
 // Returns an error code, and prints error message
 int errorLog(){
@@ -34,20 +72,21 @@ int errorLog(){
 void print_menu(){
     cout << "\nWelcome to a basic ATM Simulator\n";
 
-    if(isCreated) cout << "1. Edit account details\n";
-    else cout << "1. Create account (only once) \n";
+    if(isCreated) cout << "(1) Edit account details\n";
+    else cout << "(1) Create account (only once) \n";
 
-    cout << "2. Log in to your account\n";
-    cout << "3. Check your details\n";
-    cout << "4. Deposit to the account\n";
-    cout << "5. Withdraw from the account\n";
-    cout << "6. Log out of your account\n";
-    cout << "7. Exit the program\n";
+    cout << "(2) Log in to your account\n";
+    cout << "(3) Check your details\n";
+    cout << "(4) Deposit to the account\n";
+    cout << "(5) Withdraw from the account\n";
+    cout << "(6) Log out of your account\n";
+    cout << "(7) Delete your account\n";
+    cout << "(8) Exit the program\n";
 }
 
 bool validatePassword(bool showText=true){
     if(showText) cout << "Enter your Password: ";
-    string new_password; cin >> new_password;
+    string new_password; get_input(new_password);
 
     bool isDigit=false, isLower=false, isUpper=false, isSymbol=false;
     if(new_password.size()<8){
@@ -69,7 +108,7 @@ bool validatePassword(bool showText=true){
     }
 
     cout << "Confirm your Password: ";
-    string confirm; cin >> confirm;
+    string confirm; get_input(confirm);
     if(confirm!=new_password){
         cout << "Error: Passwords don't match\n";
         return false;
@@ -80,18 +119,18 @@ bool validatePassword(bool showText=true){
 
 void createAccount(){
     cout << "\nThis is to create an account\n";
-    cout << "Enter your Name: "; cin.ignore(); getline(cin,name);
+    cout << "Enter your Name: "; getline(cin,name);
     cout << "Enter your DOB: "; getline(cin,dob);
-    cout << "Enter your Email: "; cin >> email;
+    cout << "Enter your Email: "; get_input(email);
 
     if(!validatePassword()) return;
     cout << "Account successfully created\n";
-    isCreated = true;
+    isCreated = true; updateFile();
 }
 
 bool verifyEdit(string edit){
     cout << "Do you want to edit " << edit << "? y/n ";
-    char option; cin >> option;
+    char option; get_input(option);
     if(option=='y'){
         cout << "Enter your new " << edit << ": ";
         return true;
@@ -99,17 +138,17 @@ bool verifyEdit(string edit){
     return false;
 }
 
-void editAccount(){
-    if(errorLog()) return;
+bool editAccount(){
+    bool isEdited = false;
+    if(errorLog()) return isEdited;
     cout << "\nThis is to edit an account\n";
-
-    if(verifyEdit("name")) cin.ignore(), getline(cin,name);
-    if(verifyEdit("dob")) cin.ignore(), getline(cin,dob);
-    if(verifyEdit("email")) cin >> email;
+    if(verifyEdit("name")) getline(cin,name), isEdited=1;
+    if(verifyEdit("dob")) getline(cin,dob), isEdited=1;
+    if(verifyEdit("email")) get_input(email), isEdited=1;
     if(verifyEdit("password")){
-        if(!validatePassword(0)) return;
-        cout << "Account details successfully edited\n";
+        if(!validatePassword(0)) return isEdited;
     }
+    return isEdited;
 }
 
 void loginAccount(){
@@ -124,8 +163,8 @@ void loginAccount(){
 
     string input_email, input_password;
     cout << "\nThis is the login page\n";
-    cout << "Enter your email: "; cin >> input_email;
-    cout << "Enter your password: "; cin >> input_password;
+    cout << "Enter your email: "; get_input(input_email);
+    cout << "Enter your password: "; get_input(input_password);
     if(input_email!=email){
         cout << "\nThere is no account associated with this email\n";
         return;
@@ -141,7 +180,7 @@ void loginAccount(){
 void printDetails(){
     if(errorLog()) return;
     cout << "\nDo you want to also view your password? y/n ";
-    char choice; cin >> choice;
+    char choice; get_input(choice);
 
     string temp_password = "";
     temp_password+=password[0]; //showing only first character initially
@@ -162,7 +201,7 @@ void deposit(){
 
     double amount;
     cout << "Enter the amount to be deposited: \n";
-    cin >> amount;
+    get_input(amount);
 
     if(amount<=0){
         cout << "Amount must be positive\n";
@@ -171,6 +210,7 @@ void deposit(){
 
     balance+=amount;
     cout << "Your new balance is $" << balance << "\n";
+    updateFile();
 }
 
 void withdraw(){
@@ -179,7 +219,7 @@ void withdraw(){
 
     double amount;
     cout << "Enter the amount to be withdrawn: \n";
-    cin >> amount;
+    get_input(amount);
 
     if(amount<=0){
         cout << "Amount must be positive\n";
@@ -192,31 +232,48 @@ void withdraw(){
 
     balance-=amount;
     cout << "Your new balance is $" << balance << "\n";
+    updateFile();
 }
 
 void logoutAccount(){
     if(errorLog()) return;
 
     cout << "\nDo you really want to log out? y/n ";
-    char choice; cin >> choice;
+    char choice; get_input(choice);
     if(choice=='y'){
         cout << "Logging out...\n";
         isLoggedIn=false;
     }
 }
 
+void deleteAccount(){
+    cout << "Are your really sure you want to delete your account?\n";
+    cout << "Action is irreversible, Respond with y is so: ";
+    char choice; get_input(choice);
+    if(choice!='y' and choice!='Y') return;
+    cout << "Deleting account...\n";
+    ofstream file_out(database_file); file_out.close();
+    isCreated = false; isLoggedIn=false;
+    cout << "Successfully deleted the account\n";
+}
+
 int main()
 {
-    cout << fixed << setprecision(2); // fixes decimal places to 2
+    cout << fixed << setprecision(2); loadFile();
     while(true){
         print_menu();
         cout << "Enter your choice: ";
-        int choice; cin >> choice;
+        int choice; get_input(choice);
         if(choice==1){
             // After creating account, user can only edit account from now on.
             // This should actually only apply if also logged in
             // (in case of extending to multiple users...) but it's ok for 1 user like this
-            if(isCreated) editAccount();
+            if(isCreated){
+                if(editAccount()){
+                    cout << "Account details successfully edited\n";
+                    updateFile();
+                }
+            }
             else createAccount();
         }
         else if(choice==2) loginAccount();
@@ -224,7 +281,8 @@ int main()
         else if(choice==4) deposit();
         else if(choice==5) withdraw();
         else if(choice==6) logoutAccount();
-        else if(choice==7){ cout << "Goodbye\n"; return 0; }
+        else if(choice==7) deleteAccount();
+        else if(choice==8){ cout << "Goodbye\n"; return 0; }
         else cout << "\nInvalid input\n";
         cout << "\n";
     }
