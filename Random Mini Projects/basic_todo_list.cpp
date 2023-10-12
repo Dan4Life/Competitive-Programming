@@ -5,14 +5,17 @@ using namespace std;
 const string status[] = {"pending", "complete"}; // change the names to anything
 const int max_task = (int)1e6+10;
 const int mx_task_length = 150;
-string tasks[max_task];
-bool done[max_task];
+struct Task{
+    string title;
+    bool done;
+} tasks[max_task];
 int taskNum = 0;
 string database_file = "database.txt";
 
 void addTaskToFile(int id){
     ofstream file_out(database_file, ios::app);
-    file_out << tasks[id] << "\n" << done[id] << "\n";
+    file_out << tasks[id].title << "\n";
+    cout << tasks[id].done << "\n";
     file_out.close();
 }
 
@@ -23,9 +26,9 @@ void loadFile(){
     ifstream file_in(database_file);
     taskNum = 0;
     while(true){
-        getline(file_in, tasks[taskNum]);
+        getline(file_in, tasks[taskNum].title);
         if(file_in.eof()) break;
-        file_in >> done[taskNum];
+        file_in >> tasks[taskNum].done;
         file_in.ignore(); taskNum++;
     }
     file_in.close();
@@ -35,14 +38,15 @@ void updateFile(int id=-1){ // the id can be removed from the file
     ofstream file_out(database_file);
     for(int i = 0; i < taskNum; i++){
         if(i==id) continue; // delete current id from file
-        file_out << tasks[i] << "\n" << done[i] << "\n";
+        file_out << tasks[i].title << "\n" << tasks[i].done << "\n";
     }
     file_out.close(); loadFile();
 }
 
 template<class T> void get_input(T &var){
+    T var2;
     while(1){
-        cin >> var;
+        cin >> var2;
         if(cin.fail()){
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -53,6 +57,7 @@ template<class T> void get_input(T &var){
         }
         cout << "Invalid input, try again: ";
     }
+    var = var2;
 }
 
 int menuScreen(){
@@ -78,8 +83,8 @@ void addTask(bool skip){
         << mx_task_length << " characters\n";
         return;
     }
-    tasks[taskNum] = description; done[taskNum] = 0;
-    cout << "Successfully added \"" << tasks[taskNum] << "\"\n";
+    tasks[taskNum].title = description; tasks[taskNum].done = 0;
+    cout << "Successfully added \"" << tasks[taskNum].title << "\"\n";
     cout << "Task ID: #" << taskNum << "\n\n";
     addTaskToFile(taskNum); taskNum++;
 }
@@ -100,12 +105,12 @@ int getID(){
 
 void flipStatus(bool newStatus){
     int id = getID(); if(id==-1) return;
-    if(done[id]==newStatus){
+    if(tasks[id].done==newStatus){
         cout << "Task already marked as '" << status[newStatus] << "'\n";
         return;
     }
-    done[id] = !done[id]; // flipping
-    cout << "Successfully changed status of task \"" << tasks[id] << "\" to '";
+    tasks[id].done = !tasks[id].done; // flipping
+    cout << "Successfully changed status of task \"" << tasks[id].title << "\" to '";
     cout << status[newStatus] << "'\n"; updateFile();
 }
 
@@ -118,16 +123,16 @@ void printChar(int num, char c, bool newLine){
 void displayTasks(int type){
     int tot = 0, title_length = 0, status_length = 0;
     for(int i = 0; i < taskNum; i++){
-        if(done[i]==type or type==2){
+        if(tasks[i].done==type or type==2){
             tot++;
 
             // description column has to be at least the size of possible description messages
-            if(title_length < tasks[i].size())
-                title_length = tasks[i].size();
+            if(title_length < tasks[i].title.size())
+                title_length = tasks[i].title.size();
 
             // status column has to be at least the size of possible status messages
-            if(status_length < status[done[i]].size())
-                status_length=status[done[i]].size();
+            if(status_length < status[tasks[i].done].size())
+                status_length=status[tasks[i].done].size();
         }
     }
 
@@ -161,13 +166,13 @@ void displayTasks(int type){
     cout << "|\n";
 
     for(int i = 0; i < taskNum; i++){
-        if(done[i]==type or type==2){
+        if(tasks[i].done==type or type==2){
             printChar(num_dash,'-',1);
             cout << "#" << i << "\t|";
-            cout << tasks[i];
-            printChar(title_length-tasks[i].size(),' ',0);
-            cout << "|"; cout << status[done[i]];
-            printChar(status_length-status[done[i]].size(),' ',0);
+            cout << tasks[i].title;
+            printChar(title_length-tasks[i].title.size(),' ',0);
+            cout << "|"; cout << status[tasks[i].done];
+            printChar(status_length-status[tasks[i].done].size(),' ',0);
             cout << "|\n";
         }
     }
@@ -176,11 +181,10 @@ void displayTasks(int type){
 
 void deleteTask(){
     int id = getID(); if(id==-1) return;
-    cout << "Do you really want to delete \"" << tasks[id] << "\"?\n";
+    cout << "Do you really want to delete \"" << tasks[id].title << "\"?\n";
     cout << "Respond with y if so: "; char response; get_input(response);
     if(response!='y' and response!='Y') return;
-    cout << "Deleting task...\n";
-    updateFile(id);
+    cout << "Deleting task...\n"; updateFile(id);
     cout << "Successfully deleted the task\n";
 }
 
