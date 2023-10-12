@@ -6,19 +6,23 @@ using namespace std;
 const int max_size = 100000;
 const int max_name_size = 150;
 const double EPS = 1e-2;
-string full_name[max_size];
-float math_score[max_size];
-float english_score[max_size];
-float science_score[max_size];
+
+struct Student{
+    string full_name;
+    float math_score;
+    float english_score;
+    float science_score;
+} students[max_size];
+
 int numStudents = 0;
 string database_file = "database.txt";
 
 void add_to_file(int id){ // Add a student to file
     ofstream file_out(database_file, ios::app);
-    file_out << full_name[id] << "\n";
-    file_out << math_score[id] << "\n";
-    file_out << english_score[id] << "\n";
-    file_out << science_score[id] << "\n";
+    file_out << students[id].full_name << "\n";
+    file_out << students[id].math_score << "\n";
+    file_out << students[id].english_score << "\n";
+    file_out << students[id].science_score << "\n";
     file_out.close();
 }
 
@@ -27,11 +31,11 @@ void load_file(){ // from file to arrays
     file_out.close(); numStudents = 0;
     ifstream file_in(database_file);
     while(true){
-        getline(file_in, full_name[numStudents]);
+        getline(file_in, students[numStudents].full_name);
         if(file_in.eof()) break; // no input again
-        file_in >> math_score[numStudents];
-        file_in >> english_score[numStudents];
-        file_in >> science_score[numStudents];
+        file_in >> students[numStudents].math_score;
+        file_in >> students[numStudents].english_score;
+        file_in >> students[numStudents].science_score;
 
         // that extra '\n' is annoying for the next getline
         if(!file_in.eof()) file_in.ignore();
@@ -44,17 +48,18 @@ void update_file(int id=-1){ // possible to delete a certain ID
     ofstream file_out(database_file);
     for(int i = 0; i < numStudents; i++){
         if(i==id) continue;
-        file_out << full_name[i] << "\n";
-        file_out << math_score[i] << "\n";
-        file_out << english_score[i] << "\n";
-        file_out << science_score[i] << "\n";
+        file_out << students[i].full_name << "\n";
+        file_out << students[i].math_score << "\n";
+        file_out << students[i].english_score << "\n";
+        file_out << students[i].science_score << "\n";
     }
     file_out.close(); load_file();
 }
 
 template<class T> void get_input(T &var){
+    T var2;
     while(1){
-        cin >> var;
+        cin >> var2;
         if(cin.fail()){
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -65,6 +70,7 @@ template<class T> void get_input(T &var){
         }
         cout << "Invalid input, try again: ";
     }
+    var = var2;
 }
 
 int getId(){
@@ -97,33 +103,35 @@ void print_menu(){
 }
 
 void validate(float &var){
+    float var2;
     while(true){
-        get_input(var);
-        if(var<0 or var>100)
+        get_input(var2);
+        if(var2<0 or var2>100)
             cout << "Score not in range[0,100]. Please try again: ";
         else break;
     }
+    var = var2;
 }
 
 void add_student(){
     cout << "\nThis is to add a student\n";
     cout << "Enter the student's full name: ";
 
-    string s = full_name[numStudents];
+    string s = students[numStudents].full_name;
     while(true){
         getline(cin, s);
         if(s.size() > max_name_size)
             cout << "Name is longer than " << max_name_size << " . Please try again: ";
         else break;
     }
-    full_name[numStudents] = s;
+    students[numStudents].full_name = s;
 
     cout << "Enter the student's math score: ";
-    validate(math_score[numStudents]);
+    validate(students[numStudents].math_score);
     cout << "Enter the student's english score: ";
-    validate(english_score[numStudents]);
+    validate(students[numStudents].english_score);
     cout << "Enter the student's science score: ";
-    validate(science_score[numStudents]);
+    validate(students[numStudents].science_score);
 
     cout << "The ID of this student is #" << numStudents << "\n";
     add_to_file(numStudents); numStudents++;
@@ -150,33 +158,33 @@ bool modify_student(){
 
     char option = verifyEdit("full name");
     if(option=='y'){
-        string s = full_name[id];
+        string s = students[id].full_name;
         while(true){
             getline(cin, s);
             if(s.size() > max_name_size)
                 cout << "Name is longer than " << max_name_size << " . Please try again: ";
             else break;
         }
-        full_name[id] = s;
+        students[id].full_name = s;
         is_modified = true;
     }
     else if(option!='n') return is_modified;
 
     option=verifyEdit("math score");
     if(option=='y'){
-        validate(math_score[id]); is_modified = true;
+        validate(students[id].math_score); is_modified = true;
     }
     else if(option!='n') return is_modified;
 
     option=verifyEdit("english score");
     if(option=='y'){
-        validate(english_score[id]); is_modified = true;
+        validate(students[id].english_score); is_modified = true;
     }
     else if(option!='n') return is_modified;
 
     option=verifyEdit("science score");
     if(option=='y'){
-        validate(science_score[id]); is_modified = true;
+        validate(students[id].science_score); is_modified = true;
     }
     else if(option!='n') return is_modified;
 
@@ -184,7 +192,7 @@ bool modify_student(){
 }
 
 float getTotScore(int id){
-    return math_score[id]+english_score[id]+science_score[id];
+    return students[id].math_score+students[id].english_score+students[id].science_score;
 }
 
 string grade_letter(float score){
@@ -207,10 +215,10 @@ void show_report_card(){
     int id = getId();
     if(id==-1) return;
 
-    cout << "Student's Full Name: " << full_name[id] << "\n";
-    cout << "Student's Math Score: " << math_score[id] << " (" << grade_letter(math_score[id]) << ")\n";
-    cout << "Student's English Score: " << english_score[id] << " (" << grade_letter(english_score[id]) << ")\n";
-    cout << "Student's Science Score: " << science_score[id] << " (" << grade_letter(science_score[id]) << ")\n";
+    cout << "Student's Full Name: " << students[id].full_name << "\n";
+    cout << "Student's Math Score: " << students[id].math_score << " (" << grade_letter(students[id].math_score) << ")\n";
+    cout << "Student's English Score: " << students[id].english_score << " (" << grade_letter(students[id].english_score) << ")\n";
+    cout << "Student's Science Score: " << students[id].science_score << " (" << grade_letter(students[id].science_score) << ")\n";
     float total_score = getTotScore(id);
     cout << "Student's Total Score: " << total_score << "\n";
     cout << "Student's Percentage: " << total_score/3 << "%" << " (" << grade_letter(total_score/3) << ")\n";
@@ -232,7 +240,7 @@ void show_all_report_cards(){
 
     int mx = 12;
     for(int i = 0; i < numStudents; i++)
-        mx = max(mx, (int)(full_name[i].size()));
+        mx = max(mx, (int)(students[i].full_name.size()));
 
     int tot = 57+(mx+1)/8*8;
     print_line(tot);
@@ -243,12 +251,12 @@ void show_all_report_cards(){
     for(int i = 0; i < numStudents; i++){
         print_line(tot);
         cout << "|" << i << "\t|";
-        string name = full_name[i];
+        string name = students[i].full_name;
         while(name.size()<mx)name+=' ';
         cout << name << "\t|";
-        cout << math_score[i] << "\t|";
-        cout << english_score[i] << "\t|";
-        cout << science_score[i] << "\t|";
+        cout << students[i].math_score << "\t|";
+        cout << students[i].english_score << "\t|";
+        cout << students[i].science_score << "\t|";
         float average = getTotScore(i)/3;
         cout << average;
         cout << "(" << grade_letter(average) << ")";
@@ -265,7 +273,7 @@ void delete_student(){
     }
     cout << "\nThis is to delete a student's data\n\n";
     int id = getId(); if(id==-1) return;
-    cout << "Student name is " << full_name[id] << "\n\n";
+    cout << "Student name is " << students[id].full_name << "\n\n";
     cout << "Are you really sure you want to delete this student id?\n";
     cout << "Respond with y/n (yes/no): ";
     char option; get_input(option);
@@ -306,7 +314,7 @@ void find_highest_students(){
     cout << "The following students obtained this score:\n\n";
     for(int i = 0; i < numStudents; i++)
         if(abs(getTotScore(i)/3 - highest_score) < EPS)
-            cout << "#" << i << " " << full_name[i] << "\n";
+            cout << "#" << i << " " << students[i].full_name << "\n";
 }
 
 void find_lowest_students(){
@@ -323,7 +331,7 @@ void find_lowest_students(){
     cout << "The following students obtained this score:\n\n";
     for(int i = 0; i < numStudents; i++)
         if(abs(getTotScore(i)/3 - lowest_score) < EPS)
-           cout << "#" << i << " " << full_name[i] << "\n";
+           cout << "#" << i << " " << students[i].full_name << "\n";
 }
 
 void get_average_per_subject(){
@@ -333,9 +341,9 @@ void get_average_per_subject(){
     }
     float math=0, eng=0, sci=0, avg=0;
     for(int i = 0; i < numStudents; i++){
-        math+=math_score[i];
-        eng+=english_score[i];
-        sci+=science_score[i];
+        math+=students[i].math_score;
+        eng+=students[i].english_score;
+        sci+=students[i].science_score;
         avg+=getTotScore(i)/3;
     }
     math/=numStudents, eng/=numStudents, sci/=numStudents, avg/=numStudents;
