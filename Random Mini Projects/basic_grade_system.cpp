@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 const int max_size = 100000;
@@ -98,7 +99,7 @@ void print_menu(){
     cout << "(7) Find the highest scoring student(s)\n";
     cout << "(8) Find the lowest scoring student(s)\n";
     cout << "(9) Calculate average grade of all students for each subject\n";
-    //cout << "(10) Show all students' report cards in decreasing order of grades\n";
+    cout << "(10) Show all students' report cards in decreasing order of grades\n";
     cout << "\n";
 }
 
@@ -191,7 +192,7 @@ bool modify_student(){
     return is_modified;
 }
 
-float getTotScore(int id){
+float getTotScore(int id, Student students[]){
     return students[id].math_score+students[id].english_score+students[id].science_score;
 }
 
@@ -219,7 +220,7 @@ void show_report_card(){
     cout << "Student's Math Score: " << students[id].math_score << " (" << grade_letter(students[id].math_score) << ")\n";
     cout << "Student's English Score: " << students[id].english_score << " (" << grade_letter(students[id].english_score) << ")\n";
     cout << "Student's Science Score: " << students[id].science_score << " (" << grade_letter(students[id].science_score) << ")\n";
-    float total_score = getTotScore(id);
+    float total_score = getTotScore(id, students);
     cout << "Student's Total Score: " << total_score << "\n";
     cout << "Student's Percentage: " << total_score/3 << "%" << " (" << grade_letter(total_score/3) << ")\n";
 }
@@ -257,7 +258,7 @@ void show_all_report_cards(){
         cout << students[i].math_score << "\t|";
         cout << students[i].english_score << "\t|";
         cout << students[i].science_score << "\t|";
-        float average = getTotScore(i)/3;
+        float average = getTotScore(i, students)/3;
         cout << average;
         cout << "(" << grade_letter(average) << ")";
         if(average<10.0) cout << "\t";
@@ -308,12 +309,12 @@ void find_highest_students(){
 
     float highest_score = 0;
     for(int i = 0; i < numStudents; i++)
-        highest_score = max(highest_score, getTotScore(i)/3);
+        highest_score = max(highest_score, getTotScore(i,students)/3);
 
     cout << "\nThe highest score among all students is " << highest_score << "%\n";
     cout << "The following students obtained this score:\n\n";
     for(int i = 0; i < numStudents; i++)
-        if(abs(getTotScore(i)/3 - highest_score) < EPS)
+        if(abs(getTotScore(i,students)/3 - highest_score) < EPS)
             cout << "#" << i << " " << students[i].full_name << "\n";
 }
 
@@ -323,14 +324,14 @@ void find_lowest_students(){
         return;
     }
 
-    float lowest_score = getTotScore(0);
+    float lowest_score = getTotScore(0,students);
     for(int i = 0; i < numStudents; i++)
-        lowest_score = min(lowest_score, getTotScore(i)/3);
+        lowest_score = min(lowest_score, getTotScore(i,students)/3);
 
     cout << "\nThe lowest score among all students is " << lowest_score << "%\n";
     cout << "The following students obtained this score:\n\n";
     for(int i = 0; i < numStudents; i++)
-        if(abs(getTotScore(i)/3 - lowest_score) < EPS)
+        if(abs(getTotScore(i,students)/3 - lowest_score) < EPS)
            cout << "#" << i << " " << students[i].full_name << "\n";
 }
 
@@ -344,7 +345,7 @@ void get_average_per_subject(){
         math+=students[i].math_score;
         eng+=students[i].english_score;
         sci+=students[i].science_score;
-        avg+=getTotScore(i)/3;
+        avg+=getTotScore(i,students)/3;
     }
     math/=numStudents, eng/=numStudents, sci/=numStudents, avg/=numStudents;
     cout << "\nThis is to show all averages\n\n";
@@ -352,6 +353,53 @@ void get_average_per_subject(){
     cout << "The average english score: " << eng << "\n";
     cout << "The average science score: " << sci << "\n";
     cout << "The average percentage: " << avg << "("<< grade_letter(avg) <<")\n\n";
+}
+
+bool cmp_student(Student a, Student b){
+    float totA = a.math_score+a.english_score+a.science_score;
+    float totB = b.math_score+b.english_score+b.science_score;
+    if(totA > totB) return true;
+    return false;
+}
+
+void show_all_report_cards_decreasing(){
+    if(numStudents==0){
+        cout << "\nThere are no students in this system\n";
+        return;
+    }
+
+    cout << "\nThis is to show all students' report cards in decreasing order\n\n";
+    Student students_copy[numStudents];
+    for(int i = 0; i < numStudents; i++)
+        students_copy[i] = students[i];
+
+    sort(students_copy, students_copy+numStudents, cmp_student);
+    int mx = 12;
+    for(int i = 0; i < numStudents; i++)
+        mx = max(mx, (int)(students_copy[i].full_name.size()));
+
+    int tot = 57+(mx+1)/8*8;
+    print_line(tot);
+    cout << "|ID\t|Student Name";
+    for(int i = 0; i < (mx+1)/8; i++) cout << "\t";
+    cout << "|Math\t|Eng.\t|Sci.\t|Grade\t\t|\n";
+
+    for(int i = 0; i < numStudents; i++){
+        print_line(tot);
+        cout << "|" << i << "\t|";
+        string name = students_copy[i].full_name;
+        while(name.size()<mx)name+=' ';
+        cout << name << "\t|";
+        cout << students_copy[i].math_score << "\t|";
+        cout << students_copy[i].english_score << "\t|";
+        cout << students_copy[i].science_score << "\t|";
+        float average = getTotScore(i,students_copy)/3;
+        cout << average;
+        cout << "(" << grade_letter(average) << ")";
+        if(average<10.0) cout << "\t";
+        cout << "\t|\n";
+    }
+    print_line(tot);
 }
 
 int main()
@@ -382,6 +430,7 @@ int main()
         else if(option==7) find_highest_students();
         else if(option==8) find_lowest_students();
         else if(option==9) get_average_per_subject();
+        else if(option==10) show_all_report_cards_decreasing();
         else cout << "Your choice is not valid. Try again!\n";
     }
 }
