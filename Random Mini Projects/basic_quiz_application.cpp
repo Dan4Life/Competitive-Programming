@@ -158,14 +158,12 @@ void delete_question(){
 
     cout << "\nAre you really sure you want to delete this question? Y/N: ";
     char choice; get_input(choice);
+    if(choice!='Y') return;
 
-    if(choice=='Y'){
-        cout << "\nDeleting...\n";
-        questions.erase(questions.begin()+index);
-        update_file();
-        cout << "Successfully deleted this question!\n";
-        return;
-    }
+    cout << "\nDeleting...\n";
+    questions.erase(questions.begin()+index);
+    update_file();
+    cout << "Successfully deleted this question!\n";
 }
 
 void add_options_to_question(){
@@ -287,7 +285,7 @@ void show_all_questions(){
 }
 
 void start_test(){
-
+    cout << "To be implemented soon...\n";
 }
 
 int main(){
@@ -299,6 +297,7 @@ int main(){
 
         if(choice==0){
             cout << "Exiting the program...\n";
+            cout << "Any ideas on improving this?\n";
             return 0;
         }
         else if(choice==1) add_question();
