@@ -6,6 +6,8 @@ using namespace std;
 const int max_size = 1000;
 const int min_options = 2;
 const int max_options = 5;
+const int max_statement_length = 250;
+const int max_option_length = 100;
 string database_file = "database.txt";
 
 struct Question{
@@ -72,12 +74,23 @@ template<class T> void get_input(T &var){ // to prevent unwanted input during ru
     var = var2;
 }
 
-void validate(int &var, int low, int high){ // to make sure integers are inputted in a certain range
+void validate(int &var, int low, int high){ // to make sure integers are inputted in a certain value range
     int var2;
     while(true){
         get_input(var2);
         if(var2<low or var2>high)
             cout << "Input not in range[" << low << "," << high << "]. Please try again: ";
+        else break;
+    }
+    var = var2;
+}
+
+void validate_string(string &var, int low, int high){ // to make sure strings are inputted in a certain length range
+    string var2;
+    while(true){
+        getline(cin, var2);
+        if((int)var2.size()<low or (int)var2.size()>high)
+            cout << "Length is not in range[" << low << "," << high << "]. Please try again: ";
         else break;
     }
     var = var2;
@@ -107,13 +120,13 @@ void show_question(int index){
 }
 
 void add_question(){
-    if(questions.size()>=max_size){
+    if((int)questions.size()>=max_size){
         cout << "\nThe number of questions in the database has reached the maximum size (" << max_size << ")\n\n";
         return;
     }
 
     cout << "\nPlease input a question statement:\n";
-    string statement; getline(cin, statement);
+    string statement; validate_string(statement,1,max_statement_length);
 
     cout << "\nHow many options do you want to add (" << min_options << " to " << max_options << "): ";
     int num_options; validate(num_options, min_options, max_options);
@@ -122,7 +135,7 @@ void add_question(){
     for(int i = 0; i < num_options; i++){
         if(!i) cout << "Enter the correct option: ";
         else cout << "Enter option (" << (char)('A'+i) << "): ";
-        string option; getline(cin, option);
+        string option; validate_string(option,1,max_option_length);
         options.emplace_back(option);
     }
 
@@ -181,7 +194,7 @@ void add_options_to_question(){
     vector<string> options; options.clear();
     for(int i = 0; i < num_options; i++){
         cout << "Enter option (" << (char)('A'+i+questions[index].options.size()) << "): ";
-        string option; getline(cin, option);
+        string option; validate_string(option,1,max_option_length);
         options.emplace_back(option);
     }
     for(auto option : options)
@@ -240,7 +253,7 @@ void edit_question(){
     if(choice!='Y') return;
 
     cout << "\nPlease input the new question statement:\n";
-    string statement; getline(cin, statement);
+    string statement; validate_string(statement,1,max_statement_length);
 
     cout << "\nHow many options do you want to add (" << min_options << " to " << max_options << "): ";
     int num_options; validate(num_options, min_options, max_options);
@@ -249,7 +262,7 @@ void edit_question(){
     for(int i = 0; i < num_options; i++){
         if(!i) cout << "Enter the correct option: ";
         else cout << "Enter option (" << (char)('A'+i) << "): ";
-        string option; getline(cin, option);
+        string option; validate_string(option,1,max_option_length);
         options.emplace_back(option);
     }
 
