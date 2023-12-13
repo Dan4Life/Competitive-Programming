@@ -74,24 +74,24 @@ template<class T> void get_input(T &var){ // to prevent unwanted input during ru
     var = var2;
 }
 
-void validate(int &var, int low, int high){ // to make sure integers are inputted in a certain value range
-    int var2;
+template<class T> void validate(T &var, int low, int high){
+    // to make sure integers are inputted in a certain value range
+    // and strings are inputted in a certain length range
+    // I did this with two functions in a previous version of this code...
+    T var2;
     while(true){
-        get_input(var2);
-        if(var2<low or var2>high)
-            cout << "Input not in range[" << low << "," << high << "]. Please try again: ";
-        else break;
-    }
-    var = var2;
-}
-
-void validate_string(string &var, int low, int high){ // to make sure strings are inputted in a certain length range
-    string var2;
-    while(true){
-        getline(cin, var2);
-        if((int)var2.size()<low or (int)var2.size()>high)
-            cout << "Length is not in range[" << low << "," << high << "]. Please try again: ";
-        else break;
+        if constexpr(is_same_v<T, int>) { // if type int
+            get_input(var2);
+            if(var2<low or var2>high)
+                cout << "Input is not in range[" << low << "," << high << "]. Please try again: ";
+            else break;
+        }
+        else if constexpr (is_same_v<T, string>) { // if type string
+            getline(cin, var2);
+            if((int)var2.size()<low or (int)var2.size()>high)
+                cout << "Input length is not in range[" << low << "," << high << "]. Please try again: ";
+            else break;
+        }
     }
     var = var2;
 }
@@ -109,7 +109,7 @@ void print_menu(){
 }
 
 void show_question(int index){
-    if(index<0 or index>=questions.size()) return;
+    if(index<0 or index>=(int)questions.size()) return;
     cout << "\nThe question statement is: \"" << questions[index].statement << "\"\n";
     cout << "Current options:\n";
     int cnt2 = 0;
@@ -126,7 +126,7 @@ void add_question(){
     }
 
     cout << "\nPlease input a question statement:\n";
-    string statement; validate_string(statement,1,max_statement_length);
+    string statement; validate(statement,1,max_statement_length);
 
     cout << "\nHow many options do you want to add (" << min_options << " to " << max_options << "): ";
     int num_options; validate(num_options, min_options, max_options);
@@ -135,7 +135,7 @@ void add_question(){
     for(int i = 0; i < num_options; i++){
         if(!i) cout << "Enter the correct option: ";
         else cout << "Enter option (" << (char)('A'+i) << "): ";
-        string option; validate_string(option,1,max_option_length);
+        string option; validate(option,1,max_option_length);
         options.emplace_back(option);
     }
 
@@ -192,7 +192,7 @@ void add_options_to_question(){
     vector<string> options; options.clear();
     for(int i = 0; i < num_options; i++){
         cout << "Enter option (" << (char)('A'+i+questions[index].options.size()) << "): ";
-        string option; validate_string(option,1,max_option_length);
+        string option; validate(option,1,max_option_length);
         options.emplace_back(option);
     }
     for(auto option : options)
@@ -251,7 +251,7 @@ void edit_question(){
     if(choice!='Y') return;
 
     cout << "\nPlease input the new question statement:\n";
-    string statement; validate_string(statement,1,max_statement_length);
+    string statement; validate(statement,1,max_statement_length);
 
     cout << "\nHow many options do you want to add (" << min_options << " to " << max_options << "): ";
     int num_options; validate(num_options, min_options, max_options);
@@ -260,7 +260,7 @@ void edit_question(){
     for(int i = 0; i < num_options; i++){
         if(!i) cout << "Enter the correct option: ";
         else cout << "Enter option (" << (char)('A'+i) << "): ";
-        string option; validate_string(option,1,max_option_length);
+        string option; validate(option,1,max_option_length);
         options.emplace_back(option);
     }
 
