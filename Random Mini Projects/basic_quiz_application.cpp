@@ -3,14 +3,16 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <time.h>
+#include <chrono> // higher precision clock
 using namespace std;
 
-const int max_size = 1000;
 const int min_options = 2;
 const int max_options = 5;
+const int max_size = 100000;
+const int max_test_duration = 600;
 const int max_option_length = 100;
 const int max_statement_length = 250;
+const int max_test_questions_size = 100;
 string database_file = "database.txt";
 
 struct Question{
@@ -29,19 +31,18 @@ void add_to_file(Question &question){ // Add a question to file
 }
 
 void load_file(){ // from file to vector
-    ofstream file_out(database_file, ios::app);
-    file_out.close(); questions.clear();
+    ofstream file_out(database_file, ios::app); // make sure the file is created if there isn't one.
+    file_out.close(); questions.clear();        // make sure the variables are cleared.
     ifstream file_in(database_file);
     while(true){
         Question question;
         getline(file_in, question.statement);
-        if(file_in.eof()) break; // no input again
+        if(file_in.eof()) break;                    // no input again
         int num_options; file_in >> num_options;
-        file_in.ignore();
+        file_in.ignore();                           // to prevent issues with the next getline
         question.options.clear();
         while(num_options--){
-            string option;
-            getline(file_in, option);
+            string option; getline(file_in, option);
             question.options.push_back(option);
         }
         questions.push_back(question);
@@ -50,7 +51,7 @@ void load_file(){ // from file to vector
 }
 
 void update_file(){ // rewrite entire file with contents of the vector
-    ofstream file_out(database_file);
+    ofstream file_out(database_file); // create empty file / clear existing file
     for(auto question : questions){
         file_out << question.statement << "\n";
         file_out << question.options.size() << "\n";
@@ -72,7 +73,7 @@ template<class T> void get_input(T &var){ // to prevent unwanted input during ru
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             if(cin.gcount() <= 1) break;
         }
-        cout << "Invalid input, try again: ";
+        cout << "\nInput is not in the right format, please try again: ";
     }
     var = var2;
 }
@@ -86,13 +87,13 @@ template<class T, class U> void validate(T &var, U low, U high){
         if constexpr(is_same_v<T, int> or is_same_v<T, float> or is_same_v<T, char>) { // if type int/float/char
             get_input(var2);
             if(var2<low or var2>high)
-                cout << "Input is not in range[" << (T)low << "," << (T)high << "]. Please try again: ";
+                cout << "\nInput is not in range[" << (T)low << "," << (T)high << "]. Please try again: "; // notice the type casting...
             else break;
         }
         else if constexpr (is_same_v<T, string>) { // if type string
             getline(cin, var2);
             if((int)var2.size()<low or (int)var2.size()>high)
-                cout << "Input length is not in range[" << low << "," << high << "]. Please try again: ";
+                cout << "\nInput length is not in range[" << low << "," << high << "]. Please try again: ";
             else break;
         }
     }
@@ -114,7 +115,7 @@ void print_menu(){
 void show_question(int index){
     if(index<0 or index>=(int)questions.size()) return;
     cout << "\nThe question statement is: \"" << questions[index].statement << "\"\n";
-    cout << "Current options:\n";
+    cout << "Current options (note that option A is the correct answer):\n";
     int cnt2 = 0;
     for(auto option : questions[index].options){
         cout << "(" << (char)('A'+cnt2) << "). " << option << "\n";
@@ -122,13 +123,19 @@ void show_question(int index){
     }
 }
 
+void print_char(char c, int length){
+    for(int i = 0; i < length; i++) cout << c;
+    cout << "\n";
+}
+
 void add_question(){
     if((int)questions.size()>=max_size){
-        cout << "\nThe number of questions in the database has reached the maximum size (" << max_size << ")\n\n";
+        cout << "The number of questions in the database has reached the maximum size (" << max_size << ")\n\n";
         return;
     }
+    cout << "ADD A NEW QUESTION\n\n";
 
-    cout << "\nPlease input a question statement:\n";
+    cout << "Please input a question statement:\n";
     string statement; validate(statement,1,max_statement_length);
 
     cout << "\nHow many options do you want to add (" << min_options << " to " << max_options << "): ";
@@ -144,16 +151,14 @@ void add_question(){
 
     questions.push_back(Question{statement, options});
     add_to_file(questions.back());
-    cout << "\nSuccessfully added new question!\n";
+    cout << "\n\nSuccessfully added new question!\n\n";
 }
 
 void delete_question(){
-    if(questions.empty()){
-        cout << "\nDatabase is empty!\n";
-        return;
-    }
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "DELETE A QUESTION\n\n";
 
-    cout << "\nThere are currently " << questions.size() << " questions in the database\n";
+    cout << "There are currently " << questions.size() << " questions in the database\n";
     cout << "Please input the index of the question you want to delete: ";
     int index; validate(index,1,(int)questions.size()); index--;
 
@@ -163,25 +168,22 @@ void delete_question(){
     char choice; get_input(choice);
     if(choice!='Y' and choice!='y') return;
 
-    cout << "\nDeleting...\n";
     questions.erase(questions.begin()+index);
     update_file();
-    cout << "Successfully deleted this question!\n";
+    cout << "\n\nSuccessfully deleted this question!\n\n";
 }
 
 void add_options_to_question(){
-    if(questions.empty()){
-        cout << "\nDatabase is empty!\n";
-        return;
-    }
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "ADD OPTIONS TO A QUESTION\n\n";
 
-    cout << "\nThere are currently " << questions.size() << " questions in the database\n";
+    cout << "There are currently " << questions.size() << " questions in the database\n";
     cout << "Please input the index of the question you want to add options to: ";
     int index; validate(index,1,(int)questions.size()); index--;
 
     int new_options = max_options-questions[index].options.size();
     if(new_options<=0){
-        cout << "\nMaximum number of options added!\n";
+        cout << "\nThis question already has the maximum number of options!\n";
         return;
     }
 
@@ -198,17 +200,16 @@ void add_options_to_question(){
         string option; validate(option,1,max_option_length);
         options.emplace_back(option);
     }
+
     for(auto option : options)
         questions[index].options.emplace_back(option);
     update_file();
-    cout << "\nSuccessfully added new options!\n";
+    cout << "\n\nSuccessfully added new options to this question!\n\n";
 }
 
 void delete_option_from_question(){
-    if(questions.empty()){
-        cout << "\nDatabase is empty!\n";
-        return;
-    }
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "DELETE AN OPTION FROM A QUESTION\n\n";
 
     cout << "There are currently " << questions.size() << " questions in the database\n";
     cout << "Please input the index of the question you want to delete an option from: ";
@@ -216,30 +217,27 @@ void delete_option_from_question(){
 
     show_question(index);
 
-    if(questions[index].options.size()==min_options){
+    if(questions[index].options.size()<=min_options){
         cout << "\nQuestion has minimum number of options required!\n";
         return;
     }
 
     cout << "\nPlease input the index of the option you want to delete.\n";
-    cout << "Note that the first option which is assumed to be correct cannot be deleted: ";
-    int index2; validate(index2,2,(int)questions[index].options.size()); index2--;
+    cout << "Note that if you delete the first option, the next option will be assumed to be correct: ";
+    int index2; validate(index2,1,(int)questions[index].options.size()); index2--;
 
     cout << "Are you sure you want to delete this option? Y(y)/(any for no): ";
     char choice; get_input(choice);
     if(choice!='Y' and choice!='y') return;
 
-    cout << "\nDeleting...\n";
     questions[index].options.erase(questions[index].options.begin()+index2);
     update_file();
-    cout << "Successfully deleted this question!\n";
+    cout << "\n\nSuccessfully deleted this question!\n\n";
 }
 
 void edit_question(){
-    if(questions.empty()){
-        cout << "\nDatabase is empty!\n";
-        return;
-    }
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "EDIT A QUESTION\n\n";
 
     cout << "There are currently " << questions.size() << " questions in the database\n";
     cout << "Please input the index of the question you want to edit: ";
@@ -266,66 +264,71 @@ void edit_question(){
     }
 
     questions[index] = Question{statement, options};
-    update_file(); cout << "\nSuccessfully updated this question!\n";
+    update_file();
+    cout << "\n\nSuccessfully editted this question!\n\n";
 }
 
 void show_all_questions(){
-    cout << "ALL QUESTIONS IN THE DATABASE\n\n";
-    cout << "---------------------------------------------------------------------------\n\n";
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "SHOW ALL QUESTIONS IN THE DATABASE\n\n\n";
+
     int cnt = 1;
     for(auto question : questions){
-        cout << cnt << ". " << question.statement << "\n";
+        cout << cnt++ << ". " << question.statement << "\n";
         int cnt2 = 0;
         for(auto option : question.options){
             cout << "(" << (char)('A'+cnt2) << "). " << option << "\n";
             cnt2++;
         }
-        cout<<"\n\n"; cnt++;
+        cout<<"\n\n";
     }
-    cout << "---------------------------------------------------------------------------\n";
 }
 
 void start_test(){
-    if(questions.empty()){
-        cout << "\nDatabase is empty!\n";
-        return;
-    }
+    if(questions.empty()){ cout << "Database is empty!\n"; return; }
+    cout << "TAKE THE TEST\n\n";
 
-    cout << "\nWelcome to \"Take the test\"!\n\n";
     cout << "There are currently " << questions.size() << " questions in the database\n";
-    cout << "Before we begin, I have a few questions to ask:\n";
+    cout << "Before we begin, I have a few questions to ask:\n\n";
 
-    cout << "\n1. Do you want the questions in random order? Y(y)/(any for no): ";
+    cout << "1. Do you want the questions in random order? Y(y)/(any for no): ";
     char choice; get_input(choice);
     bool random_order = (choice=='Y' or choice=='y');
 
-    cout << "2. This next question has not yet been implemented. How long do you want to take the test(in minutes from 1 to 600): ";
-    float test_duration; validate(test_duration,1,600);
+    cout << "2. How long do you want to take the test(in minutes from 1 to " << max_test_duration << "): ";
+    float test_duration; validate(test_duration,1,max_test_duration);
 
-    cout << "3. How many questions do you want to take for the test: ";
-    int num_questions; validate(num_questions, 0, (int)questions.size());
+    cout << "3. How many questions do you want to take for the test (at most ";
+    cout << min(max_test_questions_size,(int)questions.size()) << " questions): ";
+    int num_questions; validate(num_questions, 0, min(max_test_questions_size,(int)questions.size()));
     if(num_questions==0) return;
 
     cout << "4. Do you want to know immediately if you got a question correctly? Y(y)/(any for no): ";
     get_input(choice);
     bool immediate_outcome = (choice=='Y' or choice=='y');
 
-    cout << "\n\nTest Starts Now!\n";
+    cout << "\n\nTest Starts Now!\n\n\n";
 
     vector<int> indices(num_questions,0);
     iota(indices.begin(),indices.end(),0);
     if(random_order) random_shuffle(indices.begin(),indices.end()); // randomize the question order if necessary
 
     int cnt = 1, total_correct = 0;
+    auto startTime = chrono::steady_clock::now();
+    auto endTime = startTime + (chrono::seconds)((int)(60*test_duration+1));
+
     for(auto i : indices){
+        if (chrono::steady_clock::now() > endTime) {
+            cout << "Your time is up!\n"; break;
+        }
+
         cout << cnt++ << ". " << questions[i].statement << "\n";
 
         vector<int> option_indices((int)questions[i].options.size(),0);
         iota(option_indices.begin(),option_indices.end(),0);
         random_shuffle(option_indices.begin(),option_indices.end()); // randomize the options order
 
-        int cnt2 = 0;
-        int correct_answer = -1;
+        int cnt2 = 0, correct_answer = -1;
         for(auto j : option_indices){
             if(j==0) correct_answer = cnt2;
             cout << "(" << (char)('A'+cnt2) << "). " << questions[i].options[j] << "\n";
@@ -338,14 +341,17 @@ void start_test(){
         bool got_question_right = (choice-'A'==correct_answer);
         total_correct += got_question_right;
         if(immediate_outcome){
-            if(got_question_right) cout << "You got the right answer!\n";
-            else cout << "You failed the question, the right answer is " << (char)('A'+correct_answer) << "\n";
+            cout << "\n";
+            if(got_question_right) cout << "You got the right answer!";
+            else cout << "You failed the question, the right answer is " << (char)('A'+correct_answer);
+            cout << "\n\n";
         }
         cout << "\n";
     }
 
+    cout << "\n\nThe test has ended!\n\n";
     cout << "You got " << total_correct << "/" << num_questions << " questions right!\n";
-    cout << "Your percentage for the test is " << (1.0*total_correct/num_questions * 100) << "%\n";
+    cout << "Your percentage for the test is " << fixed << setprecision(2) << (1.0*total_correct/num_questions * 100) << "%\n";
 }
 
 int main(){
@@ -354,8 +360,8 @@ int main(){
     while(true){
         print_menu();
         cout << "\nEnter your option: ";
-        int choice; validate(choice,0,7); cout << "\n";
-
+        int choice; validate(choice,0,7); cout << "\n\n";
+        print_char('-',100); cout << "\n";
         if(choice==0){
             cout << "Exiting the program...\n";
             cout << "Any ideas on improving this?\n";
@@ -369,6 +375,6 @@ int main(){
         else if(choice==6) show_all_questions();
         else if(choice==7) start_test();
         else cout << "Your choice is not valid. Try again!";
-        cout << "\n\n";
+        print_char('-',100); cout << "\n\n";
     }
 }
