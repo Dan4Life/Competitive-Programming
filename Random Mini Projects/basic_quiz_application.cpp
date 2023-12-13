@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <numeric>
 #include <chrono> // higher precision clock
+#include <iomanip>
 using namespace std;
 
 const int min_options = 2;
@@ -315,7 +316,7 @@ void start_test(){
 
     int cnt = 1, total_correct = 0;
     auto startTime = chrono::steady_clock::now();
-    auto endTime = startTime + (chrono::seconds)((int)(60*test_duration+1));
+    auto endTime = startTime + (chrono::seconds)((int)(60*test_duration));
 
     for(auto i : indices){
         if (chrono::steady_clock::now() > endTime) {
@@ -340,6 +341,7 @@ void start_test(){
 
         bool got_question_right = (choice-'A'==correct_answer);
         total_correct += got_question_right;
+
         if(immediate_outcome){
             cout << "\n";
             if(got_question_right) cout << "You got the right answer!";
@@ -348,8 +350,9 @@ void start_test(){
         }
         cout << "\n";
     }
-
+    endTime = min(endTime, chrono::steady_clock::now());
     cout << "\n\nThe test has ended!\n\n";
+    cout << "You used " << chrono::duration_cast<chrono::seconds>(endTime - startTime).count() << " seconds for the test\n";
     cout << "You got " << total_correct << "/" << num_questions << " questions right!\n";
     cout << "Your percentage for the test is " << fixed << setprecision(2) << (1.0*total_correct/num_questions * 100) << "%\n";
 }
