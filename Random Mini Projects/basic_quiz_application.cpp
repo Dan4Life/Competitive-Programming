@@ -2,15 +2,15 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <numeric>
-#include <chrono> // higher precision clock
-#include <iomanip>
+#include <numeric>             // for iota
+#include <chrono>              // higher precision clock
+#include <iomanip>             // for fixed, setprecision
 using namespace std;
 
 const int min_options = 2;
 const int max_options = 5;
 const int max_size = 100000;
-const int max_test_duration = 600;
+const int max_test_duration = 300;
 const int max_option_length = 100;
 const int max_statement_length = 250;
 const int max_test_questions_size = 100;
@@ -18,7 +18,7 @@ string database_file = "database.txt";
 
 struct Question{
     string statement;
-    vector<string> options;
+    vector<string> options;       // optionally, you can add a variable to store the correct option's position but it's not needed
 };
 vector<Question> questions;
 
