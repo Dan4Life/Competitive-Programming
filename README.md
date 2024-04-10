@@ -9,5 +9,8 @@ Also, I have a lot more submissions that I haven't yet included but I'll do that
 
 Username is Dan4life on most CP Sites and most of the OI submissions can be checked on my oj.uz account :)
 
-CF: Div1D4Life (to be changed to Dan4life in the future)
+CF: Dan4Life
+AtCoder: Dan4Life
+CodeChef: Dan4Life
+...
 
