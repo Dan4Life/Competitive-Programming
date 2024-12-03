@@ -7,10 +7,15 @@ Rename all files to include their years, it's kinda confusing
 
 Also, I have a lot more submissions that I haven't yet included but I'll do that some day...
 
-Username is Dan4life on most CP Sites and most of the OI submissions can be checked on my oj.uz account :)
+Most of the OI submissions can be checked on my oj.uz account :)
 
-CF: Dan4Life
-AtCoder: Dan4Life
-CodeChef: Dan4Life
-...
+CF:   Dan4Life
+
+AtCoder:   Dan4Life
+
+CodeChef:   Dan4Life
+
+Oj.uz:   Dan4Life
+
+I'm starting to see a pattern here...
 
