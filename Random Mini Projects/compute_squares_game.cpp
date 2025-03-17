@@ -1,3 +1,13 @@
+// This game I made helped me mentally compute X^2 for all X<=1000 quickly
+// It's useful for improving your focus when thinking of problems in general
+// as you'd definitely need to focus to do this quickly and accurately
+// First memorize 1^2 to 32^2  (You probably know 1-16 by heart)
+// To compute X^2 for X in [33,100] just use X^2 = (X+Y)(X-Y) + Y^2
+// I use 50 for X < 70, eg: 62^2 = (62-12)(62+12) + 144 = 50*74+144 = 3700+144 = 3844
+// and 100 for X >= 70, eg: 84^2 = (84+16)(84-16) + 256 = 100*68+256 = 7056
+// To extend to 3 digit numbers, we can do the same thing but on a harder difficulty : )
+// Eg  748^2 = 700*796 + 48^2 = 557200 + 2304 = 559504
+
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -44,22 +54,21 @@ int randint(int a, int b){
 }
 
 int main(){
-	srand(time(0)); int lb, ub, repeat, option;
+	srand(time(0)); int lb, ub, repeat, option, lim=-1;
 	
 	cout << "Welcome to \"Compute The Perfect Squares\" game\n\n";
 	cout << "There are some preset game settings, pick any option or choose custom settings\n";
 	cout << "1) 1 to 32, once\n";
 	cout << "2) 33 to 100, once\n";
-	cout << "3) 101 to 1000, once\n";
+	cout << "3) 101 to 1000, (100 random questions) \n";
 	cout << "4) 1 to 100, once\n";
 	cout << "5) 1 to 1000, once\n";
 	cout << "0) Custom settings\n";
 	cout << "\n";
 	cout << "Enter option: "; validate(option, 0, 5);
-	
 	if(option==1) lb=1,ub=32,repeat=1;
 	else if(option==2) lb=33,ub=100,repeat=1;
-	else if(option==3) lb=101,ub=1000,repeat=1;
+	else if(option==3) lb=101,ub=1000,repeat=1,lim=100;
 	else if(option==4) lb=1,ub=100,repeat=1;
 	else if(option==5) lb=1,ub=1000,repeat=1;
 	else{
@@ -83,9 +92,9 @@ int main(){
 		for(int j = 0; j < repeat; j++) 
 			v.push_back(i);
 	random_shuffle(begin(v),end(v));
-	
+	if(lim!=-1) v.resize(lim);
 	int score=0, tot=0;
-	double avg_time = 0, avg_good=0;
+	double avg_time = 0, avg_good=0, max_time=0;
 	
 	for(auto x : v){
 		cout << "\n" << x << " x " << x << " = ";
@@ -93,13 +102,14 @@ int main(){
 		int ans; validate(ans, -1, ub*ub); if(ans==-1) break;
 		auto stop = chrono::high_resolution_clock::now();
 		auto duration = chrono::duration_cast<chrono::milliseconds> (stop - start); 
-		avg_time+=duration.count()/1000.0; tot++;
+		auto tim = duration.count()/1000.0;
+		avg_time+=tim; tot++; max_time=max(max_time, tim);
 		if(ans==x*x){
 			cout << "Correct! ";
-			avg_good+=duration.count()/1000.0; score++;
+			avg_good+=tim; score++;
 		}
 		else cout << "Wrong! Answer is " << x*x << ". ";
-		cout << "Took " << fixed << setprecision(1) << duration.count()/1000.0 << "s\n";
+		cout << "Took " << fixed << setprecision(1) << tim << "s\n";
 	}
 	
 	if(tot){
@@ -108,5 +118,6 @@ int main(){
 	}
 	if(score) cout << "You took an average of " << avg_good/score*1.0 << " seconds to answer correctly\n";
 	if(tot and tot!=score) cout << "Average response time: " << avg_time/tot*1.0 << " seconds\n";
+	if(tot) cout << "Max response time for a single question: " << max_time << " seconds\n";
 	cout << "\n";
 }
