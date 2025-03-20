@@ -1,5 +1,7 @@
 // Had to use mem-saving adj list trick
-// Still doesn't work with 128Mib Lim, but works easily for >=256MB eg DMOJ
+// Still doesn't work with 128Mib Lim, but works easily for >=150MB eg DMOJ
+// UPD: I converted the dfs functions to iterative dfs and it passes under 100Mib easily now,
+//      but iterative dfs looks ugly so I'm not changing this
 
 #include <bits/stdc++.h>
 using namespace std;
