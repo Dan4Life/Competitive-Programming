@@ -12,9 +12,10 @@ void dfs(int s, int p = -1)
         if(u!=p) dfs(u,s);
     en[s] = cnt-1;
 }
- 
+
 int32_t main()
 {
+    ios_base::sync_with_stdio(false); cin.tie(0);
     cin >> n >> r >> q >> a[1];
     for(int i = 2; i <= n; i++)
     {
