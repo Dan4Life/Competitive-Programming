@@ -1,30 +1,65 @@
 #include <bits/stdc++.h>
 using namespace std;
-const int mxN = (int)1e6;
- 
-int IND=1,tot=0;
-char seg[mxN*160];
-int num[mxN], ro[mxN];
-int L[mxN*160], R[mxN*160];
- 
-int newChild(int p, char v){ int p2=++IND; L[p2]=L[p],R[p2]=R[p], seg[p2]=v; return p2; }
-int newParent(int l, int r){ int p = ++IND; L[p]=l, R[p]=r; return p; }
- 
-int upd(int x, char v, int p, int l=0, int r=mxN){
-    if(!p) return p; int mid = (l+r)/2;
-    if(l==r) return newChild(p,v);
-    if(!L[p]) L[p]=++IND; if(!R[p]) R[p]=++IND;
-    if(x<=mid) return newParent(upd(x,v,L[p],l,mid),R[p]);
-    return newParent(L[p],upd(x,v,R[p],mid+1,r)); 
+#define pb push_back
+
+const int mxN = (int)1e6+2;
+
+template<int SZ>
+struct Trie{
+	int trie[26][SZ], jmp[20][SZ];
+	int cur, IND, sz[SZ];
+	char letter[SZ];
+	vector<int> v;
+	
+	void init(){ cur=0; IND=0; v.clear(); memset(jmp,0,sizeof(jmp)); }
+	
+	void add(char x){
+		int c = x-'a';
+		if(!trie[c][cur]) trie[c][cur]=++IND;
+		int p = cur; cur = trie[c][cur];
+		sz[cur] = sz[p]+1; v.pb(cur);
+		jmp[0][cur] = p; letter[cur] = x; 
+		for(int j = 1; j < 20; j++)
+			jmp[j][cur] = jmp[j-1][jmp[j-1][cur]];
+	}
+	
+	void undo(int num){ v.pb(end(v)[-num-1]); cur = v.back(); }
+	
+	char get(int x){
+		int xd = sz[cur]-x, lol = cur;
+		for(int i = 0; i < 20; i++)
+			if(xd>>i&1) lol=jmp[i][lol];
+		return letter[lol];
+	}
+};
+
+Trie<mxN> trie;
+
+void Init(){ trie.init(); };
+
+void TypeLetter(char L){ trie.add(L); };
+
+void UndoCommands(int U){ trie.undo(U); };
+
+char GetLetter(int P){ return trie.get(P+1); };
+
+// Remove main() before submitting
+int main(){
+	Init();
+	TypeLetter('a');
+	TypeLetter('b');
+	TypeLetter('c');
+	TypeLetter('d');
+	TypeLetter('e');
+	cout << GetLetter(0) << "\n";
+	UndoCommands(3);
+	cout << GetLetter(1) << "\n";
+	TypeLetter('x');
+	TypeLetter('y');
+	TypeLetter('z');
+	cout << GetLetter(0) << "\n";
+	cout << GetLetter(1) << "\n";
+	cout << GetLetter(2) << "\n";
+	cout << GetLetter(3) << "\n";
+	cout << GetLetter(4) << "\n";
 }
- 
-int query(int x, int p, int l=0, int r=mxN){
-    if(l==r) return seg[p]; int mid = (l+r)/2;
-    if(x<=mid) return query(x,L[p],l,mid);
-    return query(x,R[p],mid+1,r);
-}
- 
-void Init(){ ro[0]=1; }
-void TypeLetter(char L){ tot++,ro[tot]=upd(num[tot-1],L,ro[tot-1]), num[tot]=num[tot-1]+1; }
-void UndoCommands(int x){ tot++,ro[tot]=ro[tot-x-1], num[tot]=num[tot-x-1]; }
-char GetLetter(int x){ return query(x,ro[tot]); }
