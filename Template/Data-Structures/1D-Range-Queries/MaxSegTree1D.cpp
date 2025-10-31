@@ -5,8 +5,9 @@ Supports point update, range Max/Min queries
 
 template<class T, int SZ>
 struct MaxSegTree1D{
-    T seg[SZ*2];
     T MIN = numeric_limits<T>::lowest();
+    T MAX = numeric_limits<T>::max();
+    T seg[SZ*2];
 
     void init(){
         for(int i = 0; i < SZ*2; i++) seg[i]=MIN;
