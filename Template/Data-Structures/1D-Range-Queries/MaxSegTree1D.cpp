@@ -27,5 +27,4 @@ struct MaxSegTree1D{
         int mid = (l+r)/2; int rp = p+2*(mid-l+1);
         return max(query(i,j,p+1,l,mid),query(i,j,rp,mid+1,r));
     }
-
 };
