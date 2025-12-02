@@ -39,7 +39,7 @@ template<class T>
 vector<T> conv(vector<string> v){
     vector<T> w; w.clear();
     for(auto u : v){
-        if(is_same<T,int>::value) w.pb(stoi(u)); // beware of #define int long long
+        if(is_same<T,int>::value) w.pb(stoll(u)); // casts to int!
         else if(is_same<T,long long>::value) w.pb(stoll(u));
         else if(is_same<T,float>::value) w.pb(stof(u));
         else if(is_same<T,double>::value) w.pb(stod(u));
