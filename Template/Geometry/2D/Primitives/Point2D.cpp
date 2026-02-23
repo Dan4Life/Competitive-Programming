@@ -56,7 +56,8 @@ double get_angle(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c) 
     double angle1 = atan2(a.y-b.y,a.x-b.x);
     double angle2 = atan2(c.y-b.y,c.x-b.x);
     double result = angle2 - angle1;
-    while (result <= -M_PI) result += 2 * M_PI;
-    while (result > M_PI) result -= 2 * M_PI;
+    const double PI = acos(-1.0);
+    while (result <= -PI) result += 2*PI;
+    while (result > PI) result -= 2*PI;
     return abs(result);
 }
