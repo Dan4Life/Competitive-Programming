@@ -30,3 +30,23 @@ struct Point2D{
     friend istream& operator>>(istream& in, Point2d &P){ return in >> P.x >> P.y;  }
     friend ostream& operator<<(ostream& out, const Point2d &P){ return out << P.x << " " << P.y;  }
 };
+
+template<class T>
+int sign(T x){ return (x>0)-(x<0); }
+
+template<class T>
+T area(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c) {
+    return a.cross(b)+b.crossP(c)+c.crossP(a);
+}
+
+template<class T>
+bool cw(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c, bool colinear){
+    if(colinear and !sign(area(a,b,c))) return 1;
+    return sign(area(a,b,c))<0;
+}
+ 
+template<class T>
+bool ccw(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c, bool colinear){
+    if(colinear and !sign(area(a,b,c))) return 1;
+    return sign(area(a,b,c))>0;
+}
