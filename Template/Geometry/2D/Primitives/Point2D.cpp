@@ -50,3 +50,13 @@ bool ccw(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c, bool col
     if(colinear and !sign(area(a,b,c))) return 1;
     return sign(area(a,b,c))>0;
 }
+
+template<class T>
+double get_angle(const Point2D<T> &a, const Point2D<T> &b, const Point2D<T> &c) {
+    double angle1 = atan2(a.y-b.y,a.x-b.x);
+    double angle2 = atan2(c.y-b.y,c.x-b.x);
+    double result = angle2 - angle1;
+    while (result <= -M_PI) result += 2 * M_PI;
+    while (result > M_PI) result -= 2 * M_PI;
+    return abs(result);
+}
